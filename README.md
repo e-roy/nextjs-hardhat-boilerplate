@@ -46,6 +46,10 @@ This project is built with the following open source libraries, frameworks and l
 
 ---
 
+## What is this?
+
+This is a basic Next front end with a Greeter Contract.
+
 ## More Details of How it Works and System Design
 
 coming soon

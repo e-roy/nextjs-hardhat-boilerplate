@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useConnect } from "wagmi";
 
-import { useIsMounted } from "../hooks";
+import { useIsMounted } from "../../hooks";
 
 export const Connect = () => {
   const isMounted = useIsMounted();

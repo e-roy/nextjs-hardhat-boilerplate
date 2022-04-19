@@ -1,50 +1,17 @@
 import Head from "next/head";
-import Image from "next/image";
 import styles from "../styles/Home.module.css";
 
-import { Connect } from "../components/Connect";
+import { useConnect } from "wagmi";
 
-import { useContract, useProvider, useSigner } from "wagmi";
+import { Connect, Disconnect, SwitchNetwork } from "../components/wallet";
+import { Greeter } from "../components/contract/Greeter";
 
-import contracts from "../contracts/hardhat_contracts.json";
+import { useNetwork } from "wagmi";
 import config from "../config.json";
-import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [currentGreeter, setCurrentGreeter] = useState("");
-  const [newGreeter, setNewGreeter] = useState("");
-
-  const [{ data: signerData }] = useSigner();
-
-  const chainId = Number(config.network.id);
-  const network = config.network.name;
-  const greeterAddress = contracts[chainId][0].contracts.Greeter.address;
-  const greeterABI = contracts[chainId][0].contracts.Greeter.abi;
-
-  const greeterContract = useContract({
-    addressOrName: greeterAddress,
-    contractInterface: greeterABI,
-    signerOrProvider: signerData,
-  });
-
-  const fetchData = async () => {
-    const greeter = await greeterContract.greet();
-    setCurrentGreeter(greeter);
-  };
-
-  useEffect(() => {
-    if (signerData) {
-      fetchData();
-    }
-  }, [signerData]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const tx = await greeterContract.setGreeting(newGreeter);
-    setNewGreeter("");
-    await tx.wait();
-    fetchData();
-  };
+  const [{ data: connectData }] = useConnect();
+  const [{ data: networkData }, switchNetwork] = useNetwork();
 
   return (
     <div className={styles.container}>
@@ -55,18 +22,21 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <div>
+        {/* Check if wallet is connected */}
+        {connectData.connected ? (
+          <>
+            <Disconnect />
+            {/* Check if connected to correct network */}
+            {networkData.chain?.id &&
+            config.network.id !== networkData.chain.id ? (
+              <SwitchNetwork />
+            ) : (
+              <Greeter />
+            )}
+          </>
+        ) : (
           <Connect />
-        </div>
-        current greeting : {currentGreeter}
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <input
-            required
-            value={newGreeter}
-            onChange={(e) => setNewGreeter(e.target.value)}
-          />
-          <button type="submit">submit</button>
-        </form>
+        )}
       </main>
 
       <footer className={styles.footer}></footer>
